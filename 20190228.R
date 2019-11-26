@@ -14,7 +14,6 @@
 # functions are used in non-parallel code, minimal changes are required."
 
 # 2)
-
 cluster <- setRefClass("cluster", 
                        fields = list(
                          clusters = "list",
@@ -34,9 +33,12 @@ cluster <- setRefClass("cluster",
                            n_points <<- 0
                            i <- 0
                            j <- 0
-                           pval <<-p
-                         }, 
-                         
+                           pval <<- p
+                         },
+                         l_p  = function(x,y){
+                           d <- (abs(x-y))^pval
+                           return(d)
+                         },
                          create_cluster = function(cluster_center)
                          {
                            stopifnot(class(cluster_center)=="numeric")
@@ -56,12 +58,12 @@ cluster <- setRefClass("cluster",
                            
                          },
                          add_observation = function(obs){
-                           stopifnot(is.numeric(obs))
-                           min <- abs(clusters$clu_center[1]-obs)^pval
+                           stopifnot(is.numeric(obs) )
+                           min <- l_p(clusters$clu_center[1],obs)
                            ind_min <- 1
                            for(i in 2:n_clusters)
                            {
-                             dis <- abs(clusters$clu_center[i]-obs)^pval
+                             dis <- l_p(clusters$clu_center[i], obs)
                              if( dis < min){
                                min <- dis
                                ind_min <- i
@@ -78,10 +80,11 @@ cluster <- setRefClass("cluster",
                          },
                          print = function() {
                            for (i in 1:n_clusters) {
-                             cat(paste("Observations in cluster", i, ":", "\n"))
+                             cat(paste("Observations in cluster", clusters$unique_ID[i], "with the center",
+                                       round(clusters$clu_center[i],2),"which contain", clusters$clu_n_points[i], "number:\n"))
                              for (j in 1:n_points) {
                                if(observations$belong[j] == i){
-                                 cat(paste(j, " ", sep = ""))
+                                 cat(paste(round(observations$obs[j],1), " ", sep = ""))
                                }
                              }
                              cat("\n")
@@ -114,7 +117,7 @@ data_obj <- build_data_object(p=2)
 
 # b.
 
-create_cluster=function(obj,n)
+fill_cluster=function(obj,n)
 {
   tp=runif(n,10,50)
   
@@ -124,7 +127,7 @@ create_cluster=function(obj,n)
   }
 }
 
-create_cluster(data_obj,10)
+fill_cluster(data_obj,10)
 
 # c.
 
